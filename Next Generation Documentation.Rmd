@@ -1,0 +1,437 @@
+---
+title: "The R Documentation Task Force: The Next Generation R Documentation System"
+author: |
+  Andrew Redd, PhD  
+  University of Utah, School of Medicine
+tags: []
+geometry: margin=1in
+guidelines: |
+    You’ll need up a brief proposal that describes the problem you want to solve. We expect submissions to be around 2-5 pages and include at four components:
+
+    # The Problem:
+    What problem do you want to solve? Why is it a problem? Who does it affect? What will solving the problem enable? This section should include a brief summary of existing work, such as other packages. If you are proposing a change to R itself, you must include a letter of support from a member of R core.
+
+    # The Plan:
+    How are you going to solve the problem? Include the concrete actions you will take and an estimated timeline. What are likely failure modes and how will you recover from them?
+
+    # How Can The ISC Help:
+	* What can we do to help you?
+	* If you need money, how much (budget proposal)?
+	* How will you spend it?
+    We expect that most of the budget will be on people, but we will  consider funding travel and equipment if you have good justification.
+	* How can we help promote your project?
+	* How else could we help?
+    Please note that the budget for the ISC is currently limited. We are likely to fund one or two projects with a budget of $20-30k projects, and handful of projects with budgets of  of $5-10k. We do not pay overhead.
+
+    # Dissemination:
+	* How will you ensure that your work is available to the widest number of people?
+	* What open source license will you use?
+	* How will you host your code so that others can contribute?
+	* How will you publicize your work?
+	* We encourage you to plan at least two blog posts to the R consortium blog:
+	    - once to announce the project, and
+	    - one to write up what you achieved.
+        * We encourage you to get feedback from the community before formally submitting the grant.
+	* You are welcome to email individual committee members to get their informal opinion, and you may want to publicize it more widely to get feedback from the broader R community.
+
+bibliography: bibliography.bib
+build-commands: |
+  Rscript -e "knitr::knit('Next\ Generation\ Documentation.Rmd')"
+  pandoc --natbib Next\ Generation\ Documentation.md -s --latex-engine=xelatex -o Next\ Generation\ Documentation.tex
+  latexmk -xelatex Next\ Generation\ Documentation.tex
+...
+
+
+```{r options, echo=F}
+		library(knitr)
+		opts_chunk$set(results='asis', echo=F, cache=T)
+```
+
+Introduction
+============
+
+The Problem
+-----------
+The documentation system built into core R, hereafter referred to as
+the Rd system, has changed little over it's life while many other
+languages and tools have surpassed it's ability to document. The
+`roxygen2`[@roxygen2] package provides alternative methods of defining
+documentation which are translated into Rd.  The package enjoys
+phenomenal popularity with much new code documented in this way.  It is
+time for a rethinking of documentation, how it is created, stored,
+handled and distributed.  There are two aspects of R documentation I
+intend to address which will make R an exemplary system for
+documentation.
+
+The first aspect is storage. The mechanism of storing documentation in
+separate Rd files hinders the development process and ties
+documentation to the packaging system, and this need not be so. Life
+does not always follow the ideal; code and data are not always
+distributed via nice packages. Decoupling the documentation from the
+packaging system will allow for more dynamic and flexible documentation
+strategies, while also simplifying the process of transitioning to
+packages  distributed through CRAN or other outlets.
+
+
+The second aspect is flexibility of defining documentation. R is a
+language of flexibility and preference.  There are many paths to the
+same outcome in R. While this has often been a source of confusion to
+new users of R, however it is also one of R's greatest strengths.
+With packages flexibility has allowed for many contributions, some
+have fallen in favor while others have proven superior.
+Adding flexibility in documentation methods will allow for newer,
+and ideally improved, methods to be developed.
+
+
+Current State of R Documentation
+--------------------------------
+
+The Rd system is the default for documenting R code. This system based
+on the \TeX markup language is well defined for distinguishing parts,
+but not very manipulable programmatically, especially when edited
+for special formatting.  The Rd system has been extended with with
+packages such as Roxygen2[@roxygen2] and inlinedocs[@inlinedocs],
+which provides some relief.
+
+The `roxygen2` package, takes inspiration from the Doxygen[@Doxygen].
+This allows for placing documentation in special comments along with
+special tags to denote different types of documentation.  For example
+`@title` denotes that the line gives the documentation title.  One area
+where `roxygen2` falls short is documentation in place, such as
+documenting function arguments next to the declaration of the argument.
+The `inlinedocs` package helps with this however it is not tied into
+the far more often used `roxygen2` system causing fragmentation. Both
+these systems are augments to the Rd system, which is fundamentally
+limited in it's aspirations.
+
+One system that we can take advice from is the `knitr` package
+[@knitrManual; @knitrBook; @knitrCollection].  This package has changed
+the literate programming paradigm for R, changing the standard for
+documents from Sweave using tex to Rmarkdown using the more friendly
+language of Markdown or CommonMark[@commonmark].
+
+
+Who should care
+---------------
+
+All R users that both create and consume functions, packages, classes,
+and data should care as all these objects should have documentation.
+Within organizations this can be particularly poignant, as code is
+rarely packaged but nearly always required to be documented. My
+proposal opens options for these organizations. Since essentially all R
+users have a stake in documentation it will be important that any
+solution to the problem consider the many varied voices in the R
+community.
+
+
+Proposed Solution
+=================
+
+Overview
+--------
+I propose creating an R Documentation Task Force with the purpose of
+completing the aims outlined below.
+
+### Aim 1
+
+> We will abstract, document and implement in R a representation for
+> documentation of R objects; functions, classes, datasets, etcetera.
+
+The core of the proposal is to define a set of documentation objects
+that can be stored internal to R, and manipulated programmatically.
+Currently the Rd parser produces an internal format that is tied
+closely to the structure of the .Rd source.  In this project we will
+abstract, document, and extend the structure of the internal format so
+that it becomes the primary target of programming effort.
+
+Part of the abstraction effort will be defining relationships between
+documentation types and restrictions on documentation.  Restrictions
+will be graded according to severity such that violations can be set to
+produce messages, warnings or errors.  The restriction level can be
+adjusted according to need and circumstance.  For example, what may be
+a warning in an interactive session, would be elevated to an error when
+building documentation intended to go into a package.
+
+
+### Aim 2
+
+> The Task Force will make recommendations for methods, in addition
+> to the Rd format, to be supported for converting into internal
+> documentation objects. Recommendations will also be made for
+> supported formats to convert to directly.
+
+
+The Task force will decide what languages will be supported for
+conversion to and from the internal storage format. We will consider
+methods such as Roxygen and Roxygen extended to include inline
+comments, for supported methods.  We will evaluate languages such
+as Markdown/CommonMark to evaluate if there is sufficient rigor to
+form an input method or if portions should be integrated into other
+methods, such as if markdown present in comments should be parsed
+and converted.
+
+Allowing documentation from multiple sources such as in comments to be
+converted to the new internal content-focused storage mechanism, raises
+these systems, such as Roxygen, to the same status as Rd documentation,
+since the intermediate step of converting to Rd will no longer be
+needed.  Allowing users multiple methods of defining documentation,
+provides flexibility while also maintaining backwards compatibility
+with existing systems. Flexibility in turn allows programmers to
+document in the style they are most comfortable with, which makes
+documentation easier and more likely to be completed.  Adding
+documentation capabilities present in other languages will put R at the
+forefront of documentation of code as it is now a leader in literate
+programming with knitr.
+
+
+### Aim 3
+
+> We will impliment the abstraction of documentation according
+> to the results of Aim 1.
+> According to the recommendations resulting from aim 2,
+> we will implement methods to convert from supported sources
+> of documentation to newly define documentation objects, and from
+> the internal representation to the supported output formats.
+
+The system we propose to implement will allow for multiple inputs and
+outputs with the internal representation at the center.  This will
+bring all the recommendations of the Documentation Task Force to the
+programmer for use.  The system will provide feedback on the
+documentation prior to building packages that will assist in
+faster development.
+
+
+Operation of the Task Force
+----------------------------
+
+To ensure that all voices with a stake in documentation are heard the
+announcement of the project will include an invitation to those
+interested to participate.  According to the interest shown final
+members may need to be selected.  Any member of the R Core Team,
+wishing to participate will be given a seat.  R Core Team members that
+have already indicated their intention to participate are listed later
+in the proposal.  Additionally, any individual representing an R
+Consortium member will be given a seat.  Should interest outside of the
+R Core Team and R Consortium members exceed reasonable limits for a
+task force, interested individuals will be selected based on experience
+in R development and code documentation in consultation with the R Core
+Team members participating on the Task Force, while trying to maximize
+the coverage of experience in different areas.
+
+In addition to myself Duncan Murdoch of the R Core Team has agreed to
+participate on the task force and included a letter of support.
+Michael Lawrence of the R Core Team and the R Journal, as well as
+others from the R community at large, have expressed interest in
+participating.
+
+The task force will work on the principle of consensus, seeking a
+solution that all can agree address their concerns[@fisher2011getting].
+If there are issues with incompatible solutions where a consensus
+cannot be reached the task force will seek outside comments through
+blog posts, online polls, and editorials in the R Journal.
+
+
+
+
+Potential Benefits
+==================
+
+The are many potential benefits to having an internal documentation
+system.  The idea of documentation that can be changes via code fits
+very well in the meta-programming ideology of R. While not all benefits
+can be foreseen, some can. These examples are not under the scope of
+this project, but given as motivation why a more programmatic approach
+to documentation is desirable.
+
+For example, at the 2016 UseR! conference there were two systems
+presented[@assertive; @checkmate] for run-time parameter checks.
+Additionally the `assertthat` package also does run-time parameter
+checks.  It is common that significant code is dedicated to checking of
+arguments for validity.  Using documentation available in a programmatic
+sense that includes information such as allowed classes, length
+restrictions, and range or value restrictions one could create a
+system that checks all function parameters against all documented
+restrictions in one call.  Since the checks are designed off structured
+documentation there would be little worry that the restrictions would
+not be documented.
+
+Another example and benefit to tool developers such as Rstudio is that
+documentation could be queried for information to provide auto-completion
+and IntelliSense style help.
+
+I am proposing decoupling documentation from the packaging system. For
+organizations that use R internally but do not distribute code as
+packages this will allow for documentation of all R work shared withing
+the organization.  Even single files passed around can include
+documentation that can be extracted and utilized for the benefit of the
+recipient.  Additionally, large development shops can utilize design
+tools that create documentation which could be imported into R.
+
+
+
+Prior Work
+==========
+
+At UseR! 2016 international R users conference I presented work I had
+done in the direction of extending the R documentation engine.  The
+work is contained in the `inlinedoc` branch of the `lint` package
+available on github[@lint:inlinedoc].  This implementation has
+facilities for in context documentation of function, a class system for
+representing documentation, the ability to extract documentation from
+source files, methods for printing documentation in either Rd or
+markdown formats, and classes for attaching documentation to functions
+that assist in printing documentation to the console.  This work has
+not been released to CRAN because it is incomplete.  The work provides
+an important proof of concept, however decisions were made unilaterally.
+The Task Force will first seek to create an abstraction of documentation
+needed for R objects, then create an implementation of that abstraction.
+
+
+Considerations for the Task Force
+=================================
+
+The following is a non-exhaustive list of issues that the documentation
+task force would provide input for.
+
+Class system
+------------
+There are several class systems in place in R: S3, S4, Reference Classes
+, and R6 [@Rmethods; @R6].  Each provides advantages and disadvantages.
+The test force will need to decide on the important features for
+storing documentation and ultimately decide on the Class system that
+will be used to internally represent documentation inside R.
+
+Storage mechanisms
+------------------
+In lint I attach documentation directly to the function or object to
+which the documentation pertains.  When a package is built and loaded
+the attributes are stripped from functions, which would negate the
+benefit of attaching documentation directly.
+An alternative would be similar to the class system where there is a
+central repository of documentation that is called on as necessary.
+This has the disadvantage of problems from renaming and could be seen
+as going against the principle of proximity.
+For either solution for storing documentation there are many
+considerations that should be accounted for: performance, memory usage,
+and loading times, just to name a few.
+
+Appropriate methods of documentation
+------------------------------------
+
+Consider the problem with in context documentation.
+Many programs are written as follows:
+
+```r
+hello_world <-
+function( greeting  = 'hello',
+          recipient = 'world'
+        ){...}
+```
+
+however how is one to interpret the documentation when added:
+
+```r
+hello_world <-
+function( greeting  = 'hello', #< The greeting
+          recipient = 'world' #< Who to
+        ){...}
+```
+
+Should this be allowed, as it is in Doxygen, with the documentation for
+the greeting be after the comma or should this be an error with
+recipient having two documentation lines as the R
+parser interprets the `#< The greeting` to belong to the parent
+expression that contains recipient.  The current implementation
+in lint circumvents the problem by placing the comma at the beginning
+of the line.
+
+```r
+hello_world <-
+function( greeting  = 'hello' #< The greeting
+        , recipient = 'world' #< Who to
+        ){...}
+```
+
+No user should be expected to be forced into putting
+commas at the beginning of a line, yet behavior consistent with the
+R parser and language definition is also desired.
+
+
+Dissemination
+=============
+
+All work produced by the documentation task force will be available
+online and to the public. The R Documentation Task Force will create a
+github account for the development of code, and storage of meeting
+notes.  All tools and packages created will be licensed under the GPL
+Version 2, the same license base R uses.  Documentation, such as
+meeting notes and design diagrams, will be licensed under a creative
+commons attribution and share alike license.
+
+The wider R community will be made aware of the documentation task
+force via blog post to the R-Consortium blog.  I will also announce the
+project on the R-announce, R-package-devel, and R-devel mailing lists.
+An article summarizing the recommendations of the documentation task
+force and developed tools will be submitted to the R Journal.  The R
+Journal does not publish on a time table that would be amenable to
+announcement of the project.
+
+
+Timeline
+========
+
++ *Mid-August 2016* notification of approval.
++ *September 1, 2016* Kickoff for the R Documentation Task Force
+   with final members.
++ *September 16, 2016* Deadline for submitting posts to the
+   R-consortium blog, the R-announce, R-package-devel, and R-devel
+   mailing lists, announcing the project.
++ *September 1 through November 27th 2016* The task force conducts
+   bi-weekly meetings via Lync to address issues in documentation.
++ *November 27th, 2016* Deadline for preliminary recommendations of
+   documentation extensions.  Recommendations and conflicts written up
+   and submitted to the R journal to be published in the December 2016
+   issue.
++ *December 2016* Posts made to the R Consortium blog, and R mailing
+   lists to coincide with the R Journal article to call for public
+   participation.
++ *January 27, 2017* Deadline for general comments on recommendations.
+   Work begins to finalize new documentation system.
++ *February 2017* Task force meets to finalize decisions after public
+   input.
++ *February-May 2017* Task force meets monthly as necessary to monitor
+   progress on code development.
++ *May 2017* Article is submitted outlining final recommendations and
+   the subsequent tools developed to the R Journal for review targeting
+   the June 2017 issue.
++ *July 4-7, 2017* Developments will be presented at the International
+   R users conference in Brussels, Belgium.
+
+
+How the R Consortium can help
+=============================
+
+By sponsoring this project the R Consortium will give much needed
+attention to the project.  Additionally the consortium has access to
+members of the consortium sponsors, and contacts with the R community
+at large to ensure that the interests are represented. Recommendations
+of additional members to include on the task force is appreciated.  I
+am asking for funding to cover salary for the programming work to
+implement the system as well as travel to the 2017 R users conference
+to presenting the recommendations and the system.
+
+
+Budget
+------
+
+I am requesting $10,000 of funding for the following reasons:
+
+* $3750 for travel to R Users Conference 2017 in Brussels, Belgium to
+  present the recommendations and system as outlined above, and
+* $6250 in salary support for programming the internal representation
+  of documentation and converts.
+
+Work hours dedicated to the administration of the R Documentation Task
+Force will be supported by the University of Utah Population Health
+Research Foundation for Discovery (letter of support included).
+
